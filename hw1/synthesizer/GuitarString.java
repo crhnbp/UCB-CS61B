@@ -1,5 +1,5 @@
 // TODO: Make sure to make this class a part of the synthesizer package
-//package <package name>;
+package synthesizer;
 
 //Make sure this class is public
 public class GuitarString {
@@ -18,8 +18,12 @@ public class GuitarString {
         //       cast the result of this divsion operation into an int. For better
         //       accuracy, use the Math.round() function before casting.
         //       Your buffer should be initially filled with zeros.
+        int cp = (int) Math.round(SR / frequency);
+        buffer = new ArrayRingBuffer<>(cp);
+        for (int i = 0; i < cp; i += 1){
+            buffer.enqueue(0.0);
+        }
     }
-
 
     /* Pluck the guitar string by replacing the buffer with white noise. */
     public void pluck() {
@@ -28,6 +32,14 @@ public class GuitarString {
         //       double r = Math.random() - 0.5;
         //
         //       Make sure that your random numbers are different from each other.
+        for (int i = 0; i < buffer.capacity(); i += 1) {
+            buffer.dequeue();
+        }
+
+        for (int i = 0; i < buffer.capacity(); i += 1){
+            double r = Math.random() - 0.5;
+            buffer.enqueue(r);
+        }
     }
 
     /* Advance the simulation one time step by performing one iteration of
@@ -37,11 +49,14 @@ public class GuitarString {
         // TODO: Dequeue the front sample and enqueue a new sample that is
         //       the average of the two multiplied by the DECAY factor.
         //       Do not call StdAudio.play().
+        double front = buffer.dequeue();
+        double second = buffer.peek();
+        buffer.enqueue(0.5 * (front + second) * DECAY);
     }
 
     /* Return the double at the front of the buffer. */
     public double sample() {
         // TODO: Return the correct thing.
-        return 0;
+        return buffer.peek();
     }
 }
