@@ -22,20 +22,10 @@ public class Column<T> {
         }
     }
 
-    int[] findItems (T item, String cond) {
-        int[] pos = new int[100];
-        for (int i = 0; i < col.size(); i += 1) {
-            if (col.get(i).equals(item)){
-                pos[pos.length] = i;
-            }
-        }
-        return pos;
-    }
-
-    void compareItem (String cond, String type) {
-        if (type.equals("string")){
-
-        }
+    Entry<T> getEntry(int i) {
+        Entry<T> targetEntry = col.get(i);
+        Entry<T> newEntry = targetEntry.duplicate();
+        return newEntry;
     }
 
     int size() {
@@ -49,8 +39,7 @@ public class Column<T> {
     public static void main(String[] args) {
         String[] s = {"USC", "UCLA", "UCSD"};
         Column<String> testColumn = new Column<>("Test", "String");
-        testColumn.printColumn();
+        //testColumn.printColumn();
     }
-
 
 }

@@ -39,15 +39,15 @@ public class Entry<T> {
         return value;
     }
 
-    public Entry<T> plus(Entry other) {
+    public Entry<T> plus(Entry e) {
         return null;
     }
 
-    public Entry<T> minus(Entry other) {
+    public Entry<T> minus(Entry e) {
         return null;
     }
 
-    public Entry<T> star(Entry other) {
+    public Entry<T> mul(Entry e) {
         return null;
     }
 
@@ -55,27 +55,27 @@ public class Entry<T> {
         return null;
     }
 
-    public boolean equal(Entry other) {
+    public boolean equals(Entry other) {
         return true;
     }
 
-    public boolean gt(Entry other) {
+    public boolean isGreater(Entry other) {
         return true;
     }
 
-    public boolean lt(Entry other) {
+    public boolean isLess(Entry other) {
         return true;
     }
 
-    public boolean equal(String other) {
+    public boolean equals(String other) {
         return true;
     }
 
-    public boolean gt(String other) {
+    public boolean isGreater(String other) {
         return true;
     }
 
-    public boolean lt(String other) {
+    public boolean isLess(String other) {
         return true;
     }
 

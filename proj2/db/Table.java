@@ -1,29 +1,54 @@
 package db;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.InputMismatchException;
 
 public class Table {
     ArrayList<Column> COLUMNS;
     String Title;
-    String[] Tags;
+    ArrayList<String> Tags;
+    Map<String, Column> colMap;
 
     /** EMPTY TABLE CONSTRUCTOR */
     Table (String ttl) {
         Title = ttl;
+        COLUMNS = new ArrayList<>();
+        Tags = new ArrayList<>();
+        colMap = new HashMap<>();
     }
 
     Table (String ttl, String[] tgs) {    //ttl = "test", tgs = ["t1 string", "t2 string"]
         Title = ttl;
-        Tags = tgs;
+        COLUMNS = new ArrayList<>();
+        Tags = new ArrayList<>();
+        colMap = new HashMap<>();
 
         int colNum = tgs.length;
-        COLUMNS = new ArrayList<>();
+
         for (int i = 0; i < colNum; i++) {
             String[] c = tgs[i].split(" "); //c = ["t1", "string"]
             String c_name = c[0]; //c_name = "t1"
             String c_type = c[1]; //c_type = "string"
-            COLUMNS.add(new Column(c_name, c_type));
+            Tags.add(c_name + " " + c_type);
+            Column newCol = constructCol(c_name, c_type);
+            COLUMNS.add(newCol);
+            colMap.put(c_name, newCol);
+        }
+    }
+
+    public Column constructCol(String name, String type) {
+        if (type.equals("int")) {
+            return new Column<Integer>(name, type);
+        }
+        else if (type.equals("float")) {
+            return new Column<Float>(name, type);
+        }
+        else if (type.equals("string")) {
+            return new Column<String>(name, type);
+        } else {
+            throw new InputMismatchException("Invalid type: type");
         }
     }
 
@@ -36,6 +61,37 @@ public class Table {
         for (Entry e : entries) {
             COLUMNS.get(i).addEntry(e);
             i += 1;
+        }
+    }
+
+    public int getRowNum() {
+        return COLUMNS.get(0).size();
+    }
+
+    public String[] getRow(int index) {
+        String[] rowEntries = new String[COLUMNS.size()];
+        for (int i = 0; i < COLUMNS.size(); i++) {
+            for (int j = 0; j < COLUMNS.get(i).size(); j++) {
+                if (j == index) {
+                    rowEntries[i] = COLUMNS.get(i).col.get(j).toString();
+                }
+            }
+        }
+        return rowEntries;
+    }
+
+    public void addColumn(Column c) {
+        Tags.add(c.colName + " " + c.colType);
+        COLUMNS.add(c);
+        colMap.put(c.colName, c);
+    }
+
+    public Column getColumn(String cn) {
+        if (colMap.containsKey(cn)) {
+            //System.out.println("Here is: " + cn);
+            return colMap.get(cn);
+        } else {
+            throw new InputMismatchException("No such column: " + cn);
         }
     }
 
@@ -52,9 +108,12 @@ public class Table {
     }
 
     void printTable() {
-        for (int i = 0; i < COLUMNS.size(); i += 1){
-            System.out.println(COLUMNS.get(i).colName +" "+ COLUMNS.get(i).colType);
-            COLUMNS.get(i).printColumn();
+        String tags = String.join(",", Tags);
+        System.out.println(tags);
+        for (int i = 0; i < getRowNum(); i++) {
+            String[] re = getRow(i);
+            String entries = String.join(",", re);
+            System.out.println(entries);
         }
     }
 
