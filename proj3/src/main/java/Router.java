@@ -55,10 +55,9 @@ public class Router {
                     }
                 }
             }
-
         }
 
-        /** path to goal */
+        /** Path to goal */
         for (Long edge = edgeTo.get(dest); edge != null; edge = edgeTo.get(edge)) {
             path.addFirst(edge);
         }

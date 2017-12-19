@@ -41,6 +41,8 @@ public class GraphBuildingHandler extends DefaultHandler {
     private final GraphDB g;
     private ArrayList<Long> way;
     private boolean flag;
+    private GraphDB.Node currNode;
+
 
     public GraphBuildingHandler(GraphDB g) {
         this.g = g;
@@ -79,6 +81,7 @@ public class GraphBuildingHandler extends DefaultHandler {
             /* Hint: A graph-like structure would be nice. */
 
             g.addNode(id, lon, lat);    // add this Node to graphDB
+            currNode = g.getNode(id);
 
         } else if (qName.equals("way")) {
             /* We encountered a new <way...> tag. */
@@ -99,11 +102,13 @@ public class GraphBuildingHandler extends DefaultHandler {
 
             long id = (long) Double.parseDouble(attributes.getValue("ref"));
             way.add(id);
+            activeState = "";
 
         } else if (activeState.equals("way") && qName.equals("tag")) {
             /* While looking at a way, we found a <tag...> tag. */
             String k = attributes.getValue("k");
             String v = attributes.getValue("v");
+            activeState = "";
             if (k.equals("maxspeed")) {
                 //System.out.println("Max Speed: " + v);
                 /* TODO set the max speed of the "current way" here. */
@@ -126,8 +131,10 @@ public class GraphBuildingHandler extends DefaultHandler {
             node this tag belongs to. Remember XML is parsed top-to-bottom, so probably it's the
             last node that you looked at (check the first if-case). */
             //System.out.println("Node's name: " + attributes.getValue("v"));
-            //g.setLoc()
-
+            String locName = GraphDB.cleanString(attributes.getValue("v"));
+            currNode.setLoc(locName);
+            //currNode = null;
+            activeState = "";
         }
     }
 

@@ -21,6 +21,7 @@ public class GraphDB {
      * creating helper classes, e.g. Node, Edge, etc. */
 
     private HashMap<Long, List<Node>> adj = new HashMap<>();    // adjacency lists
+    private Tries locTrie = new Tries();
 
     /**
      * Example constructor shows how to create and start an XML parser.
@@ -34,11 +35,10 @@ public class GraphDB {
             SAXParser saxParser = factory.newSAXParser();
             GraphBuildingHandler gbh = new GraphBuildingHandler(this);
             saxParser.parse(inputFile, gbh);
-            //adj = new HashMap<>();
         } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
         }
-        //clean();
+        clean();
     }
 
     /**
@@ -57,22 +57,27 @@ public class GraphDB {
      */
     private void clean() {
         // TODO: Your code here.
-        adj.clear();
+        for (Long id : vertices()) {
+            if (adj.get(id).size() == 1) {
+                adj.remove(id);
+            }
+        }
     }
 
     /** Returns an iterable of all vertex IDs in the graph. */
     Iterable<Long> vertices() {
         //YOUR CODE HERE, this currently returns only an empty list.
-        return adj.keySet();
-        //return new ArrayList<Long>();
+        ArrayList<Long> verticesIter = new ArrayList<>();
+        verticesIter.addAll(adj.keySet());
+        return verticesIter;
     }
 
     /** Returns ids of all vertices adjacent to v. */
     Iterable<Long> adjacent(long v) {
         List<Node> adjNodes = adj.get(v);
         List<Long> adjVertices = new ArrayList<>();
-        for (Node nd : adjNodes) {
-            adjVertices.add(nd.ID);
+        for (int i = 1; i < adjNodes.size(); i++) {
+            adjVertices.add(adjNodes.get(i).getID());
         }
         return adjVertices;
     }
@@ -94,13 +99,15 @@ public class GraphDB {
         double closet = Double.MAX_VALUE;
         long vertex = 0;
 
-        for (HashMap.Entry<Long, List<Node>> entry : adj.entrySet()) {
-            double nodeLon = entry.getValue().get(0).Lon;
-            double nodeLat = entry.getValue().get(0).Lat;
+        for (Long v : vertices()) {
+            double nodeLon = getNode(v).Lon;
+            double nodeLat = getNode(v).Lat;
             double lonDist = nodeLon - lon;
             double latDist = nodeLat - lat;
-            if (Math.sqrt(lonDist * lonDist + latDist * latDist) < closet) {
-                vertex = entry.getKey();
+            double dist = Math.sqrt(lonDist * lonDist + latDist * latDist);
+            if (dist < closet) {
+                vertex = v;
+                closet = dist;
             }
         }
         return vertex;
@@ -116,15 +123,41 @@ public class GraphDB {
         return adj.get(v).get(0).Lat;
     }
 
-    public class Node {
+    public class Node implements Comparable<Node> {
         private long ID;
         private double Lon;
         private double Lat;
+        double priority;
 
         public Node(long id, double lon, double lat) {
             this.ID = id;
             this.Lon = lon;
             this.Lat = lat;
+            this.priority = 0;
+        }
+
+        public long getID() {
+            return this.ID;
+        }
+
+        public void setPriority(double prt) {
+            this.priority = prt;
+        }
+
+        public void setLoc(String locName) {
+            locTrie.put(locName, this.ID);
+        }
+
+        @Override
+        public int compareTo(Node n) {
+            if (n.priority > this.priority) {
+                return -1;
+            }
+            else if (n.priority < this.priority) {
+                return 1;
+            } else {
+                return 0;
+            }
         }
     }
 
@@ -132,6 +165,10 @@ public class GraphDB {
         ArrayList<Node> adjList = new ArrayList<>();
         adjList.add(new Node(id, lon, lat));
         adj.put(id, adjList);
+    }
+
+    Node getNode(long id) {
+        return adj.get(id).get(0);
     }
 
 
@@ -156,6 +193,25 @@ public class GraphDB {
                 adj.get(id2).remove(nd);
             }
         }
+    }
+
+    List<String> getLocationsByPrefix(String prefix) {
+        return locTrie.keysWithPrefix(cleanString(prefix));
+    }
+
+    List<Map<String, Object>> getNodesByLocName(String locName) {
+        List<Map<String, Object>> r = new ArrayList<>();
+        List<Long> nodesID = locTrie.getNodeByLoc(locName);
+        for (long id : nodesID) {
+            System.out.println(id);
+            Map<String, Object> n = new HashMap<>();
+            n.put("lat", lat(id));
+            n.put("lon", lon(id));
+            n.put("name", locName);
+            n.put("id", id);
+            r.add(n);
+        }
+        return r;
     }
 
     void addWay(ArrayList<Long> way) {

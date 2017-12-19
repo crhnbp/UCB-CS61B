@@ -14,15 +14,12 @@ public class Rasterer {
     //              your own QuadTree since there is no built-in quadtree in Java.
     QuadTree queryTree;
 
-    private static final String[] REQUIRED_RASTER_REQUEST_PARAMS = {"ullat", "ullon", "lrlat",
-            "lrlon", "w", "h"};
-
     /** imgRoot is the name of the directory containing the images.
      *  You may not actually need this for your class. */
     public Rasterer(String imgRoot) {
         // YOUR CODE HERE
         Tile rootTile = new Tile(MapServer.ROOT_ULLON, MapServer.ROOT_ULLAT,
-                MapServer.ROOT_LRLON, MapServer.ROOT_LRLAT, imgRoot + "root.png", 0);
+                MapServer.ROOT_LRLON, MapServer.ROOT_LRLAT, "root.png", 0);
         queryTree = buildQuadTree(new QuadTree(rootTile));
     }
 
@@ -137,13 +134,13 @@ public class Rasterer {
                     if (qt.root.ullon < (double) result.get("raster_ul_lon")) {
                         result.replace("raster_ul_lon", qt.root.ullon);
                     }
-                    if (qt.root.ullat < (double) result.get("raster_ul_lat")) {
+                    if (qt.root.ullat > (double) result.get("raster_ul_lat")) {
                         result.replace("raster_ul_lat", qt.root.ullat);
                     }
                     if (qt.root.lrlon > (double) result.get("raster_lr_lon")) {
                         result.replace("raster_lr_lon", qt.root.lrlon);
                     }
-                    if (qt.root.lrlat > (double) result.get("raster_lr_lat")) {
+                    if (qt.root.lrlat < (double) result.get("raster_lr_lat")) {
                         result.replace("raster_lr_lat", qt.root.lrlat);
                     }
                     if (qt.root.depth > (int) result.get("depth")) {
@@ -222,18 +219,17 @@ public class Rasterer {
      *                    string. <br>
      * "query_success" -> Boolean, whether the query was able to successfully complete. Don't
      *                    forget to set this to true! <br>
-     * @see #REQUIRED_RASTER_REQUEST_PARAMS
+     * @see # REQUIRED_RASTER_REQUEST_PARAMS
      */
 
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
-        System.out.println(params);
+        //System.out.println(params);
         Map<String, Object> results = new HashMap<>();
-        results.put("raster_ul_lon", MapServer.ROOT_ULLON);
-        results.put("raster_ul_lat", MapServer.ROOT_ULLAT);
-        results.put("raster_lr_lon", MapServer.ROOT_LRLON);
-        results.put("raster_lr_lat", MapServer.ROOT_LRLAT);
+        results.put("raster_ul_lon", Double.MAX_VALUE);
+        results.put("raster_ul_lat", Double.MIN_VALUE);
+        results.put("raster_lr_lon", Double.NEGATIVE_INFINITY);
+        results.put("raster_lr_lat", Double.MAX_VALUE);
         results.put("depth", 0);
-        results.put("query_success", false);
 
         Map<Double, LinkedList<String>> arrangedImgs = new TreeMap<>();
 
@@ -243,7 +239,7 @@ public class Rasterer {
 
         String[][] rendered_grid = render_grid(arrangedImgs);
         results.put("render_grid", rendered_grid);
-        results.replace("query_success", true);
+        results.put("query_success", true);
 
         return results;
     }
