@@ -42,7 +42,9 @@ public class Plip extends Creature {
      *  that you get this exactly correct.
      */
     public Color color() {
-        g = 63;
+        r = 99;
+        b = 76;
+        g = (int) (96 * energy + 63);
         return color(r, g, b);
     }
 
@@ -55,11 +57,17 @@ public class Plip extends Creature {
      *  private static final variable. This is not required for this lab.
      */
     public void move() {
+        energy -= 0.15;
     }
 
 
     /** Plips gain 0.2 energy when staying due to photosynthesis. */
     public void stay() {
+        if (energy + 0.2 >= 2) {
+            energy = 2;
+        } else {
+            energy += 0.2;
+        }
     }
 
     /** Plips and their offspring each get 50% of the energy, with none
@@ -67,7 +75,8 @@ public class Plip extends Creature {
      *  Plip.
      */
     public Plip replicate() {
-        return this;
+        energy *= 0.5;
+        return new Plip(energy);
     }
 
     /** Plips take exactly the following actions based on NEIGHBORS:
@@ -81,7 +90,22 @@ public class Plip extends Creature {
      *  for an example to follow.
      */
     public Action chooseAction(Map<Direction, Occupant> neighbors) {
+        List<Direction> empties = getNeighborsOfType(neighbors, "empty");
+        if (empties.size() == 0) {
+            return new Action(Action.ActionType.STAY);
+        } else {
+            if (energy >= 1) {
+                Direction moveDir = HugLifeUtils.randomEntry(empties);
+                return new Action(Action.ActionType.REPLICATE, moveDir);
+            }
+            List<Direction> clorus = getNeighborsOfType(neighbors, "clorus");
+            if (clorus.size() > 0) {
+                if (HugLifeUtils.random() < 0.5) {
+                    Direction moveDir = HugLifeUtils.randomEntry(empties);
+                    return new Action(Action.ActionType.MOVE, moveDir);
+                }
+            }
+        }
         return new Action(Action.ActionType.STAY);
     }
-
 }
